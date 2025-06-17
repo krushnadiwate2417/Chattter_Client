@@ -1,13 +1,16 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetching } from "../utils/fetching";
-import { GETUSER } from "../utils/constant";
+import { GETALLUSERS, GETUSER } from "../utils/constant";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import {setAllUsers, setUser} from "./../redux/userSlice";
 
 
 export function ProtectedRoute({children}){
     const navigate = useNavigate();
     const {pathname} = useLocation();
+    const dispatch = useDispatch();
 
 
     const getUser = async ()=>{
@@ -18,8 +21,17 @@ export function ProtectedRoute({children}){
                 method : "GET",
                 token : localStorage.getItem('token')
             })
-            if(result.success){
 
+            const result2 = await fetching({
+                path : pathname,
+                url : GETALLUSERS,
+                method : "GET",
+                token : localStorage.getItem('token')
+            })
+
+            if(result.success && result2.success){
+                dispatch(setUser(result.user))
+                dispatch(setAllUsers(result2.users))
             }else{
                 toast.error(result.message);
                 navigate("/login");

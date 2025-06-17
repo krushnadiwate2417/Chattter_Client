@@ -4,6 +4,8 @@ import { useState } from "react";
 import { fetching } from "../utils/fetching";
 import { LOGIN, SIGNUP } from "../utils/constant";
 import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { hideLoader, showLoader } from "../redux/loaderSlice";
 
 function Form(){
     const navigate = useNavigate();
@@ -12,6 +14,7 @@ function Form(){
     const [lastName,setLastName] = useState('');
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
+    const dispatch = useDispatch();
 
     async function handleSubmit(e){
         e.preventDefault();
@@ -21,19 +24,25 @@ function Form(){
             email,
             password
         }
-        const result = await fetching({
-            path : pathname,
-            method : "POST",
-            body : body,
-            url : pathname === '/signUp' ? SIGNUP : LOGIN,
-        })
-        console.log(result);
-        result && localStorage.setItem('token',result.token);
-        if(result.success){
-            toast.success(result.message);
-            navigate("/");
-        }else{
-            toast.error(result.message);
+        try {
+            dispatch(showLoader());
+            const result = await fetching({
+                path : pathname,
+                method : "POST",
+                body : body,
+                url : pathname === '/signUp' ? SIGNUP : LOGIN,
+            })
+            dispatch(hideLoader());
+            result && localStorage.setItem('token',result.token);
+            if(result.success){
+                toast.success(result.message);
+                navigate("/");
+            }else{
+                toast.error(result.message);
+            }
+        } catch (error) {
+            dispatch(hideLoader());
+            toast.error(error.message);
         }
     }
 
