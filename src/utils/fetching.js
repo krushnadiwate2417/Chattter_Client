@@ -1,4 +1,4 @@
-export async function fetching({path,method,url,body,setError,token}){
+export async function fetching({path,method,url,body,token}){
     try {
         const response = await fetch(url,{
             method : method,
@@ -11,10 +11,10 @@ export async function fetching({path,method,url,body,setError,token}){
         });
         
         const result = await response.json();
-        if(!response.ok){ return setError(result.message);}
+        if(!response.ok){ return result;}
         
         return result;
     } catch (error) {
-        return setError(error.message)
+        return error
     }
 }

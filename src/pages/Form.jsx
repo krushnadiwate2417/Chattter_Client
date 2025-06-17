@@ -1,17 +1,17 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Input from "../components/Input";
 import { useState } from "react";
 import { fetching } from "../utils/fetching";
 import { LOGIN, SIGNUP } from "../utils/constant";
+import toast from "react-hot-toast";
 
 function Form(){
-
+    const navigate = useNavigate();
     const { pathname } = useLocation();
     const [firstName,setFirstName] = useState('');
     const [lastName,setLastName] = useState('');
     const [email,setEmail] = useState('');
     const [password,setPassword] = useState('');
-    const [error,setError] = useState('');
 
     async function handleSubmit(e){
         e.preventDefault();
@@ -26,10 +26,15 @@ function Form(){
             method : "POST",
             body : body,
             url : pathname === '/signUp' ? SIGNUP : LOGIN,
-            setError
         })
         console.log(result);
         result && localStorage.setItem('token',result.token);
+        if(result.success){
+            toast.success(result.message);
+            navigate("/");
+        }else{
+            toast.error(result.message);
+        }
     }
 
     return <>
@@ -39,7 +44,6 @@ function Form(){
             <Input placeholder={"Email"} type={"email"} setText={setEmail}/>
             <Input placeholder={"Password"} type={"password"} setText={setPassword}/>
             <button type="submit">{pathname === '/signUp' ? "Sign Up" : "Log In"}</button>
-            {error && <div><p>{error}</p></div>}
         </form>
     </>
 }
