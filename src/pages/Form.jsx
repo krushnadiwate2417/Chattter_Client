@@ -48,10 +48,10 @@ function Form(){
 
     return <>
         <form onSubmit={(e)=>handleSubmit(e)}>
-            {pathname === "/signUp" && <Input placeholder={"First Name"} type={"text"} setText={setFirstName}/>}
-            {pathname === "/signUp" && <Input placeholder={"Last Name"} type={"text"} setText={setLastName}/>}
-            <Input placeholder={"Email"} type={"email"} setText={setEmail}/>
-            <Input placeholder={"Password"} type={"password"} setText={setPassword}/>
+            {pathname === "/signUp" && <Input placeholder={"First Name"} type={"text"} value={firstName} setText={setFirstName}/>}
+            {pathname === "/signUp" && <Input placeholder={"Last Name"} type={"text"} value={lastName} setText={setLastName}/>}
+            <Input value={email} placeholder={"Email"} type={"email"} setText={setEmail}/>
+            <Input value={password} placeholder={"Password"} type={"password"} setText={setPassword}/>
             <button type="submit">{pathname === '/signUp' ? "Sign Up" : "Log In"}</button>
         </form>
     </>

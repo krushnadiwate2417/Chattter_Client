@@ -44,9 +44,9 @@ export function SideBar(){
     function openChat(selectedUserId){
         const chat = allChats.find(
             chat=>
-                chat.members.includes(user._id)
+                chat.members.map(m=>m._id).includes(user._id)
                 &&
-                chat.members.includes(selectedUserId)
+                chat.members.map(m=>m._id).includes(selectedUserId)
         );
 
         if(chat){
@@ -70,13 +70,13 @@ export function SideBar(){
                     )
                     ||
                     (
-                        allChats.some(chat=>chat.members.includes(ele._id))
+                        allChats.some(chat=>chat.members.map(m=>m._id).includes(ele._id))
                     )
                 )
             }).map((ele,index)=>{
                 return <div key={ele?._id} onClick={()=>{openChat(ele._id)}}>
                         <h5>{ele?.firstName + " "+ ele?.lastName}</h5>
-                        { !allChats.find(chat => chat.members.includes(ele._id))
+                        { !allChats.find(chat => chat.members.map(m=>m._id).includes(ele._id))
                         && <button onClick={()=>{
                     startNewChat(ele._id);
                 }}>Start Chat</button>}
