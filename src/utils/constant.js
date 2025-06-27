@@ -6,3 +6,4 @@ export const GETALLCHATS = "http://localhost:3000/api/v1/chat/getAllChats";
 export const START_NEW_CHAT = "http://localhost:3000/api/v1/chat/startNewChat";
 export const GET_ALL_MESSAGES = "http://localhost:3000/api/v1/message/getAllMessages";
 export const SEND_MESSAGE = "http://localhost:3000/api/v1/message/sendMessage";
+export const CLEAR_UNREAD_MESSAGE = "http://localhost:3000/api/v1/chat/clearUnreadMessages";
