@@ -100,7 +100,10 @@ function ChatArea() {
 
   useEffect(() => {
     getMessages();
-    clearUnreadCount();
+    if(selectedChat?.lastMessage?.sender !== user._id)
+    {
+      clearUnreadCount();
+    }
   }, [selectedChat]);
 
   useEffect(() => {
@@ -139,6 +142,7 @@ function ChatArea() {
                 </div>
                 <div className="text-xs text-white/50 mt-1">
                   {formatTime(ele.createdAt)}
+                  {isSender && ele.read && <p>Read</p>}
                 </div>
               </div>
             );

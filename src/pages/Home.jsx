@@ -2,6 +2,7 @@ import { useSelector } from "react-redux";
 import ChatArea from "../components/ChatArea";
 import { Header } from "../components/Header";
 import { SideBar } from "../components/SideBar";
+import { useState } from "react";
 
 function Home() {
   const { selectedChat } = useSelector((state) => state.userReducer);
@@ -15,7 +16,7 @@ function Home() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div className="w-[300px] bg-slate-800 border-r border-slate-700 overflow-y-auto">
-          <SideBar />
+          <SideBar/>
         </div>
 
         {/* Chat Area */}

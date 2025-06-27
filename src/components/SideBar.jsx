@@ -12,7 +12,7 @@ import moment from "moment";
 export function SideBar() {
   const { pathname } = useLocation();
   const dispatch = useDispatch();
-  const { allUsers, allChats, user } = useSelector((state) => state.userReducer);
+  const {selectedChat, allUsers, allChats, user } = useSelector((state) => state.userReducer);
   const [searchKey, setSearchKey] = useState('');
 
   async function startNewChat(searchedUserId) {
@@ -75,6 +75,16 @@ export function SideBar() {
     return fName + " " + lName;
   }
 
+  function getUnreadMessageCount(eleId){
+    const chat = allChats.find((chat)=>chat.members.map((m)=>m?._id).includes(eleId));
+
+    if(chat && chat?.unReadMessageCount && selectedChat?.lastMessage?.sender !== user._id ){
+      return chat?.unReadMessageCount;
+    }
+  }
+
+  
+
   return (
     <div className="p-4 space-y-4 h-full overflow-y-auto">
       <SearchInput searchKey={searchKey} setSearchKey={setSearchKey} />
@@ -103,7 +113,7 @@ export function SideBar() {
             return (
               <div
                 key={ele?._id}
-                onClick={() => openChat(ele._id)}
+                onClick={() => {openChat(ele._id)}}
                 className="flex items-start justify-between gap-3 p-3 bg-slate-700 hover:bg-slate-600 rounded-xl cursor-pointer transition"
               >
                 {/* Left: User Name + Message */}
@@ -126,6 +136,8 @@ export function SideBar() {
                       {getLastMessage(ele?._id).time}
                     </p>
                   )}
+                  
+                  <p>{getUnreadMessageCount(ele?._id)}</p>
 
                   {!allChats.find((chat) =>
                     chat.members.map((m) => m._id).includes(ele._id)
