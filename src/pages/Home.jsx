@@ -2,10 +2,22 @@ import { useSelector } from "react-redux";
 import ChatArea from "../components/ChatArea";
 import { Header } from "../components/Header";
 import { SideBar } from "../components/SideBar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 
 function Home() {
-  const { selectedChat } = useSelector((state) => state.userReducer);
+  const { selectedChat,user } = useSelector((state) => state.userReducer);
+  const socket = io('http://localhost:3000');
+
+  useEffect(()=>{
+    if(user){
+      socket.emit('join-room',user._id);
+      socket.emit('send-message',{text : "Hello John",recipient : '68594afa67155a3b408ae514'});
+      socket.on('recieve-msg',(data)=>{
+        console.log(data);
+      })
+    }
+  },[user])
 
   return (
     <div className="h-screen w-screen flex flex-col bg-slate-900 text-white">
