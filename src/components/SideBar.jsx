@@ -88,7 +88,7 @@ export function SideBar({socket,onlineUsers}) {
   }
 
   useEffect(()=>{
-    socket.on('recieve-message',(message)=>{
+    socket.off('set-msg-count').on('set-msg-count',(message)=>{
       const selectedChat = store.getState().userReducer.selectedChat;
       let allChats = store.getState().userReducer.allChats;
 

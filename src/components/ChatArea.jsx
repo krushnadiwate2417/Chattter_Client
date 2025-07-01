@@ -18,6 +18,7 @@ function ChatArea({socket}) {
   const dispatch = useDispatch();
   const chatBottomRef = useRef(null);
   const [isTyping,setIsTyping] = useState(false);
+  const [data,setData] = useState(null);
 
   const selectedUser = selectedChat.members.find((u) => u._id !== user._id);
   async function getMessages() {
@@ -31,6 +32,7 @@ function ChatArea({socket}) {
       });
       dispatch(hideLoader());
       if (response.success) {
+
         setAllMessages(response.data);
       }
     } catch (error) {
@@ -38,14 +40,14 @@ function ChatArea({socket}) {
     }
   }
 
-  async function sendMessage() {
+  async function sendMessage(img=null) {
     try {
-      if (!messageText.trim()) return;
 
       const newMessage = {
           chatId: selectedChat._id,
           sender: user._id,
           text: messageText,
+          img
         }
 
         socket.emit('send-message',{
@@ -64,6 +66,7 @@ function ChatArea({socket}) {
       });
 
       if (response.success) {
+        console.log(response);
         setMessageText("");
         getMessages();
       }
@@ -71,6 +74,19 @@ function ChatArea({socket}) {
       toast(error.message);
     }
   };
+
+  async function sendImage(e){
+    const image = e.target.files[0];
+    console.log(image);
+    const reader = new FileReader();
+
+    reader.readAsDataURL(image);
+
+    reader.onloadend = async ()=>{
+      sendMessage(reader.result);
+    }
+
+  }
 
   async function clearUnreadCount(){
     try {
@@ -123,7 +139,7 @@ function ChatArea({socket}) {
       clearUnreadCount();
     }
 
-    socket.on("recieve-message",(message)=>{
+    socket.off("recieve-message").on("recieve-message",(message)=>{
       const selectedChat = store.getState().userReducer.selectedChat;
       const user = store.getState().userReducer.user;
       if(selectedChat._id === message.chatId){
@@ -157,12 +173,12 @@ function ChatArea({socket}) {
     })
 
     socket.on('started-typing',(data)=>{
+      setData(data);
       if(selectedChat._id === data.chatId && data.sender !== user._id){
         setIsTyping(true);
         const timeOut = setTimeout(() => {
           setIsTyping(false);
         }, 2000);
-        clearTimeout(timeOut);
       }
     })
 
@@ -201,6 +217,7 @@ function ChatArea({socket}) {
                   }`}
                 >
                   {ele.text}
+                  {ele?.img && <img src={ele.img} alt="image" height={30} width={30}/>}
                 </div>
                 <div className="text-xs text-white/50 mt-1">
                   {formatTime(ele.createdAt)}
@@ -209,7 +226,7 @@ function ChatArea({socket}) {
               </div>
             );
           })}
-          {isTyping && <div><i>Typing...</i></div>}
+          {isTyping && selectedChat?.members.map((m)=>m._id).includes(data?.sender) && <div><i>Typing...</i></div>}
         <div ref={chatBottomRef}></div>
       </div>
 
@@ -230,8 +247,20 @@ function ChatArea({socket}) {
             }}
           />
         </div>
+
+        <div>
+          <label for="file">Send Images</label>
+            <input
+            id="file"
+            className="hidden"
+              type="file"
+              accept=".jpg,.jpeg,.png,.gif"
+              onChange={sendImage}
+            />
+        </div>
+
         <button
-          onClick={sendMessage}
+          onClick={()=>sendMessage()}
           className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition"
         >
           Send

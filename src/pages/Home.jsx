@@ -3,10 +3,9 @@ import ChatArea from "../components/ChatArea";
 import { Header } from "../components/Header";
 import { SideBar } from "../components/SideBar";
 import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-const socket = io('http://localhost:3000');
 
-function Home() {
+
+function Home({socket}) {
   const { selectedChat,user } = useSelector((state) => state.userReducer);
   const [onlineUsers, setOnlineUsers] = useState([]);
 
@@ -17,8 +16,11 @@ function Home() {
       socket.on('onlineUsers-list',(onlineUsersList)=>{
         setOnlineUsers(onlineUsersList);
       })
+      socket.on('onlineUsers-list-updated',(onlineUsersList)=>{
+        setOnlineUsers(onlineUsersList);
+      })
     }
-  },[user])
+  },[user,onlineUsers])
 
   return (
     <div className="h-screen w-screen flex flex-col bg-slate-900 text-white">

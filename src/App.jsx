@@ -8,6 +8,9 @@ import { useSelector } from 'react-redux'
 import Loader from './components/Loader'
 import Profile from './pages/Profile'
 
+import { io } from "socket.io-client";
+const socket = io('http://localhost:3000');
+
 
 function App() {
 
@@ -21,12 +24,12 @@ function App() {
         <Routes>
           <Route path='/' element={
             <ProtectedRoute>
-              <Home/>
+              <Home socket={socket}/>
             </ProtectedRoute>
             } />
             <Route path='/profile' element={
               <ProtectedRoute>
-                <Profile/>
+                <Profile socket={socket}/>
               </ProtectedRoute>
             }/>
           <Route path='/login' element={<Form/>}/>
