@@ -8,6 +8,7 @@ import { hideLoader, showLoader } from "../redux/loaderSlice";
 import Input from "./Input";
 import moment from "moment";
 import store from "./../redux/store";
+import { setAllChats } from "../redux/userSlice";
 
 function ChatArea({socket}) {
   const { pathname } = useLocation();
@@ -16,6 +17,7 @@ function ChatArea({socket}) {
   const [allMessages, setAllMessages] = useState([]);
   const dispatch = useDispatch();
   const chatBottomRef = useRef(null);
+  const [isTyping,setIsTyping] = useState(false);
 
   const selectedUser = selectedChat.members.find((u) => u._id !== user._id);
   async function getMessages() {
@@ -72,6 +74,12 @@ function ChatArea({socket}) {
 
   async function clearUnreadCount(){
     try {
+
+      socket.emit('clear-unread-msgs',{
+        chatId : selectedChat._id,
+        members : selectedChat.members.map((m)=>m._id)
+      })
+
       const response = await fetching({
         path : pathname,
         method : "PATCH",
@@ -81,12 +89,13 @@ function ChatArea({socket}) {
       })
 
       if(response.success){
-        allChats.map((chat)=>{
+        const upDatedChats = allChats.map((chat)=>{
           if(chat._id === selectedChat._id){
             return response.data;
           }
           return chat;
         })
+        dispatch(setAllChats(upDatedChats));
       }
 
     } catch (error) {
@@ -116,8 +125,44 @@ function ChatArea({socket}) {
 
     socket.on("recieve-message",(message)=>{
       const selectedChat = store.getState().userReducer.selectedChat;
+      const user = store.getState().userReducer.user;
       if(selectedChat._id === message.chatId){
       setAllMessages(prevMsgs => [...prevMsgs,message])
+      }
+      
+      if(selectedChat._id === message._id && message.sender !== user._id){
+        clearUnreadCount();
+      }
+    })
+
+    socket.on('msg-count-cleared', data=>{
+      const selectedChat = store.getState().userReducer.selectedChat;
+      const allChats = store.getState().userReducer.allChats;
+
+      if(selectedChat._id === data.chatId){
+        const updatedChats = allChats.map((chat)=>{
+        if(chat._id === data.chatid){
+          return {...chat,unReadMessageCount : 0}
+        }
+        return chat
+      })
+      dispatch(setAllChats(updatedChats));
+
+      setAllMessages(prev => {
+        return prev.map(msg => {
+          return {...msg, read : true};
+        })
+      })
+    }
+    })
+
+    socket.on('started-typing',(data)=>{
+      if(selectedChat._id === data.chatId && data.sender !== user._id){
+        setIsTyping(true);
+        const timeOut = setTimeout(() => {
+          setIsTyping(false);
+        }, 2000);
+        clearTimeout(timeOut);
       }
     })
 
@@ -164,17 +209,25 @@ function ChatArea({socket}) {
               </div>
             );
           })}
+          {isTyping && <div><i>Typing...</i></div>}
         <div ref={chatBottomRef}></div>
       </div>
 
       {/* Input Box */}
       <div className="p-4 border-t border-slate-700 bg-slate-800 flex items-center space-x-3">
         <div className="flex-1">
-          <Input
+          <input
             value={messageText}
-            placeholder={"Write something..."}
-            setText={setMessageText}
-            type={"text"}
+            placeholder="Write something..."
+            type="text"
+            onChange={(e)=>{
+              setMessageText(e.target.value);
+              socket.emit('user-typing',{
+                chatId : selectedChat._id,
+                members : selectedChat.members.map(m=>m._id),
+                sender : user._id
+              })
+            }}
           />
         </div>
         <button

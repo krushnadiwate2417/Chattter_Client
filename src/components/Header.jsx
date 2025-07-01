@@ -1,7 +1,9 @@
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 export function Header() {
   const { user } = useSelector((state) => state.userReducer);
+  const navigate = useNavigate();
 
   function getFullName() {
     if (!user) return "";
@@ -25,7 +27,9 @@ export function Header() {
       {user && (
         <div className="flex items-center space-x-4">
           {/* Initials Badge */}
-          <div className="bg-blue-600 text-white font-semibold w-10 h-10 flex items-center justify-center rounded-full">
+          <div onClick={()=>{
+            navigate('/profile')
+          }}  className="bg-blue-600 cursor-pointer text-white font-semibold w-10 h-10 flex items-center justify-center rounded-full">
             {user.firstName[0].toUpperCase()}
             {user.lastName[0].toUpperCase()}
           </div>

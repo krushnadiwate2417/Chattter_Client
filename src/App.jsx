@@ -6,6 +6,7 @@ import { Toaster } from 'react-hot-toast'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useSelector } from 'react-redux'
 import Loader from './components/Loader'
+import Profile from './pages/Profile'
 
 
 function App() {
@@ -23,6 +24,11 @@ function App() {
               <Home/>
             </ProtectedRoute>
             } />
+            <Route path='/profile' element={
+              <ProtectedRoute>
+                <Profile/>
+              </ProtectedRoute>
+            }/>
           <Route path='/login' element={<Form/>}/>
           <Route path='/signUp' element={<Form/>}/>
         </Routes>

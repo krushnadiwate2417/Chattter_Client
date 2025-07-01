@@ -8,10 +8,15 @@ const socket = io('http://localhost:3000');
 
 function Home() {
   const { selectedChat,user } = useSelector((state) => state.userReducer);
+  const [onlineUsers, setOnlineUsers] = useState([]);
 
   useEffect(()=>{
     if(user){
       socket.emit('join-room',user._id);
+      socket.emit('users-login',user._id);
+      socket.on('onlineUsers-list',(onlineUsersList)=>{
+        setOnlineUsers(onlineUsersList);
+      })
     }
   },[user])
 
@@ -24,7 +29,7 @@ function Home() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div className="w-[300px] bg-slate-800 border-r border-slate-700 overflow-y-auto">
-          <SideBar socket = {socket}/>
+          <SideBar socket = {socket} onlineUsers={onlineUsers}/>
         </div>
 
         {/* Chat Area */}

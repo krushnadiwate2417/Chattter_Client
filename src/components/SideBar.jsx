@@ -10,7 +10,7 @@ import { setAllChats, setSelectedChat } from "../redux/userSlice";
 import moment from "moment";
 import store from "../redux/store";
 
-export function SideBar({socket}) {
+export function SideBar({socket,onlineUsers}) {
   const { pathname } = useLocation();
   const dispatch = useDispatch();
   const {selectedChat, allUsers, allChats, user } = useSelector((state) => state.userReducer);
@@ -64,7 +64,7 @@ export function SideBar({socket}) {
       return obj;
     }else{
       const preFix = chat?.lastMessage?.sender === user._id ? "You: " : "";
-      obj.text =  preFix + chat?.lastMessage?.text?.substring(0,15) + "...";
+      obj.text =  preFix + chat?.lastMessage?.text?.substring(0,25) + (chat?.lastMessage?.text.length > 25 ? "..." : "");
       obj.time = moment(chat?.lastMessage?.createdAt).format("MMMM D, hh:mm A");
     }
     return obj;
@@ -77,17 +77,20 @@ export function SideBar({socket}) {
   }
 
   function getUnreadMessageCount(eleId){
-    const chat = allChats.find((chat)=>chat.members.map((m)=>m?._id).includes(eleId));
-
-    if(chat && chat?.unReadMessageCount && selectedChat?.lastMessage?.sender !== user._id ){
-      return chat?.unReadMessageCount;
-    }
+    const chat = allChats.find(chat => 
+            chat.members.map(m => m._id).includes(eleId)
+        );
+        if(chat && chat.unReadMessageCount && chat.lastMessage?.sender !== user._id){
+            return chat?.unReadMessageCount;
+        }else{
+            return "";
+        }
   }
 
   useEffect(()=>{
     socket.on('recieve-message',(message)=>{
       const selectedChat = store.getState().userReducer.selectedChat;
-      const allChats = store.getState().userReducer.allChats;
+      let allChats = store.getState().userReducer.allChats;
 
       if(selectedChat?._id !== message.chatId){
         const updatedChats = allChats.map((chat)=>{
@@ -97,14 +100,31 @@ export function SideBar({socket}) {
               unReadMessageCount : (chat?.unReadMessageCount || 0) + 1,
               lastMessage : message
             }
-            return chat;
           }
-          dispatch(setAllChats(updatedChats));
+          return chat;
         })
+        allChats = updatedChats;
       }
+      const latestChat = allChats.find(chat => chat._id === message.chatId);
+
+      const otherChats = allChats.filter(chat => chat._id !== message.chatId);
+
+      allChats = [latestChat,...otherChats];
+      dispatch(setAllChats(allChats));
 
     })
   },[])
+
+    function getData(){
+      if(searchKey === ""){
+          return allChats;
+      }else{
+          return allUsers.filter(user => {
+              return user.firstName?.toLowerCase().includes(searchKey?.toLowerCase()) ||
+                  user.lastName?.toLowerCase().includes(searchKey?.toLowerCase());
+          });
+      }
+    }
   
 
   return (
@@ -140,7 +160,11 @@ export function SideBar({socket}) {
               >
                 {/* Left: User Name + Message */}
                 <div className="flex flex-col w-full">
-                  <h5 className="text-white font-medium text-base">
+                  <h5 
+                  className={`font-medium text-base
+                      ${onlineUsers.includes(ele._id) ? "text-green-300" : "text-white"}
+                    `}
+                  >
                     {formatName(ele)}
                   </h5>
 
