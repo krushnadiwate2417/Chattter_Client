@@ -7,8 +7,9 @@ import { useEffect, useState, useRef } from "react";
 import { hideLoader, showLoader } from "../redux/loaderSlice";
 import Input from "./Input";
 import moment from "moment";
+import store from "./../redux/store";
 
-function ChatArea() {
+function ChatArea({socket}) {
   const { pathname } = useLocation();
   const { selectedChat, user, allChats } = useSelector((state) => state.userReducer);
   const [messageText, setMessageText] = useState("");
@@ -38,25 +39,33 @@ function ChatArea() {
   async function sendMessage() {
     try {
       if (!messageText.trim()) return;
-      dispatch(showLoader());
+
+      const newMessage = {
+          chatId: selectedChat._id,
+          sender: user._id,
+          text: messageText,
+        }
+
+        socket.emit('send-message',{
+          ...newMessage,
+          members : selectedChat.members.map(m=>m._id),
+          read : false,
+          createdAt : moment().format("DD-MM-YYYY hh:mm:ss")
+        })
+
       const response = await fetching({
         path: pathname,
         method: "POST",
         url: SEND_MESSAGE,
         token: localStorage.getItem("token"),
-        body: {
-          chatId: selectedChat._id,
-          sender: user._id,
-          text: messageText,
-        },
+        body: newMessage ,
       });
-      dispatch(hideLoader());
+
       if (response.success) {
         setMessageText("");
         getMessages();
       }
     } catch (error) {
-      dispatch(hideLoader());
       toast(error.message);
     }
   };
@@ -104,6 +113,14 @@ function ChatArea() {
     {
       clearUnreadCount();
     }
+
+    socket.on("recieve-message",(message)=>{
+      const selectedChat = store.getState().userReducer.selectedChat;
+      if(selectedChat._id === message.chatId){
+      setAllMessages(prevMsgs => [...prevMsgs,message])
+      }
+    })
+
   }, [selectedChat]);
 
   useEffect(() => {

@@ -8,8 +8,9 @@ import { useLocation } from "react-router-dom";
 import { hideLoader, showLoader } from "../redux/loaderSlice";
 import { setAllChats, setSelectedChat } from "../redux/userSlice";
 import moment from "moment";
+import store from "../redux/store";
 
-export function SideBar() {
+export function SideBar({socket}) {
   const { pathname } = useLocation();
   const dispatch = useDispatch();
   const {selectedChat, allUsers, allChats, user } = useSelector((state) => state.userReducer);
@@ -83,6 +84,27 @@ export function SideBar() {
     }
   }
 
+  useEffect(()=>{
+    socket.on('recieve-message',(message)=>{
+      const selectedChat = store.getState().userReducer.selectedChat;
+      const allChats = store.getState().userReducer.allChats;
+
+      if(selectedChat?._id !== message.chatId){
+        const updatedChats = allChats.map((chat)=>{
+          if(chat._id === message.chatId){
+            return {
+              ...chat,
+              unReadMessageCount : (chat?.unReadMessageCount || 0) + 1,
+              lastMessage : message
+            }
+            return chat;
+          }
+          dispatch(setAllChats(updatedChats));
+        })
+      }
+
+    })
+  },[])
   
 
   return (

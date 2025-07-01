@@ -4,18 +4,14 @@ import { Header } from "../components/Header";
 import { SideBar } from "../components/SideBar";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+const socket = io('http://localhost:3000');
 
 function Home() {
   const { selectedChat,user } = useSelector((state) => state.userReducer);
-  const socket = io('http://localhost:3000');
 
   useEffect(()=>{
     if(user){
       socket.emit('join-room',user._id);
-      socket.emit('send-message',{text : "Hello John",recipient : '68594afa67155a3b408ae514'});
-      socket.on('recieve-msg',(data)=>{
-        console.log(data);
-      })
     }
   },[user])
 
@@ -28,13 +24,13 @@ function Home() {
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div className="w-[300px] bg-slate-800 border-r border-slate-700 overflow-y-auto">
-          <SideBar/>
+          <SideBar socket = {socket}/>
         </div>
 
         {/* Chat Area */}
         <div className="flex-1 bg-slate-900">
           {selectedChat ? (
-            <ChatArea />
+            <ChatArea socket={socket} />
           ) : (
             <div className="h-full flex items-center justify-center text-white/50 text-lg">
               Select a chat to start messaging
