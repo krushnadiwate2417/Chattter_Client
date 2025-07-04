@@ -3,10 +3,11 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { fetching } from "../utils/fetching";
-import { UPLOAD_PROFILE_PIC } from "../utils/constant";
+import { CHANGE_PASSWORD, UPLOAD_PROFILE_PIC } from "../utils/constant";
 import toast from "react-hot-toast";
 import { hideLoader, showLoader } from "../redux/loaderSlice";
 import { setUser } from "../redux/userSlice";
+import Input from "../components/Input";
 
 
 function Profile({socket}) {
@@ -15,6 +16,10 @@ function Profile({socket}) {
   const user = useSelector((state) => state.userReducer.user);
   const dispatch = useDispatch();
   const [image, setImage] = useState("");
+  const [passwordChange,setPasswordChange] = useState(false)
+  const [oldPassword,setOldPassword] = useState("");
+  const [newPassword,setNewPassword] = useState("");
+  const [confirmPassword,setConfirmPassword] = useState("");
 
   async function handleImageUpload(event) {
     const file = event.target.files[0];
@@ -46,9 +51,40 @@ function Profile({socket}) {
         dispatch(hideLoader());
         toast.error(error.message)
       }
-
-
     };
+  }
+
+  async function handlePasswordChange(e){
+    e.preventDefault();
+    try {
+
+      if(newPassword !== confirmPassword){
+        toast.error("New Password and Confrim Password must match");
+        return;
+      }
+
+      dispatch(showLoader());
+      const response = await fetching({
+        path : pathname,
+        url : CHANGE_PASSWORD,
+        method : "PATCH",
+        token : localStorage.getItem('token'),
+        body : {
+          oldPassword,
+          newPassword
+        }
+      })
+
+      if(response.success){
+        dispatch(hideLoader());
+        toast.success(response.message)
+        setPasswordChange(false);
+      }
+
+    } catch (error) {
+      dispatch(hideLoader());
+      toast(error.message)
+    }
   }
 
   function getFullName() {
@@ -117,7 +153,45 @@ function Profile({socket}) {
               className="hidden"
             />
           </label>
-          <button
+
+          <div>
+            {!passwordChange && <button 
+              className="cursor-pointer"
+              onClick={()=>setPasswordChange(true)}
+            >Change Password</button>}
+            {
+              passwordChange
+              &&
+              <div>
+                <form onSubmit={handlePasswordChange}>
+                  <Input
+                  value={oldPassword}
+                  placeholder={"Enter Your Previous Password"}
+                  setText={setOldPassword}
+                  type={"password"}
+                  />
+                  <Input
+                    value={newPassword}
+                    placeholder={"Enter Your New Password"}
+                    setText={setNewPassword}
+                    type={"password"}
+                  />
+                  <Input
+                    value={confirmPassword}
+                    placeholder={"Confrim Your New Password"}
+                    setText={setConfirmPassword}
+                    type={"password"}
+                  />
+                  <div>
+                    <button type="submit">Change Password</button>
+                    <button onClick={()=>setPasswordChange(false)}>Cancel</button>
+                  </div>
+                </form>
+              </div>
+            }
+          </div>
+
+          <button className="cursor-pointer"
             onClick={handleLogout}
           >Log Out</button>
         </div>
@@ -126,7 +200,7 @@ function Profile({socket}) {
        <div className="absolute top-6 left-6">
             <button
                 onClick={() => navigate("/")}
-                className="bg-gray-700 hover:bg-gray-600 text-white text-sm px-4 py-2 rounded-lg shadow transition"
+                className="bg-gray-700 cursor-pointer hover:bg-gray-600 text-white text-sm px-4 py-2 rounded-lg shadow transition"
             >
                 ← Back to Home
             </button>

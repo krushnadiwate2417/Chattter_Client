@@ -39,6 +39,13 @@ function Form() {
         navigate("/");
       } else {
         toast.error(result.message);
+        console.log(result.message)
+        if(result.message === "No user Exist, Try Signing up / Create new User"){
+          navigate("/signUp")
+        }
+        if(result.message == "User already Exist, Try logging in !"){
+          navigate("/login")
+        }
       }
     } catch (error) {
       dispatch(hideLoader());
@@ -96,7 +103,7 @@ function Form() {
 
           <button
             type="submit"
-            className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition duration-200"
+            className="w-full cursor-pointer py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition duration-200"
           >
             {pathname === "/signUp" ? "Sign Up" : "Log In"}
           </button>
@@ -108,7 +115,7 @@ function Form() {
               Already have an account?{" "}
               <button
                 type="button"
-                className="text-blue-400 hover:underline"
+                className="text-blue-400 hover:underline cursor-pointer"
                 onClick={() => navigate("/login")}
               >
                 Log In
@@ -119,7 +126,7 @@ function Form() {
               New here?{" "}
               <button
                 type="button"
-                className="text-blue-400 hover:underline"
+                className="text-blue-400 hover:underline cursor-pointer"
                 onClick={() => navigate("/signUp")}
               >
                 Create an Account
